@@ -1,0 +1,154 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doctors</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+
+      div {
+        margin: 20px 0;
+      }
+
+      p {
+        line-height: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <select name="areas" id="area"></select>
+    <select name="specialization" id="special"></select>
+    <button id="submit" type="submit">Search</button>
+
+    <div id="results"></div>
+    <script>
+      window.googleDocCallback = function () {
+        return true;
+      };
+      var id = "10l8lqQdPuerTpzcfafrSo4VSxzNs2KeqZ1Bt58qz6kw";
+      var gid = "0";
+      var sname = "Sheet1";
+      var key = "AIzaSyBeCTU0RPkSf0ehqCS9LQ4pv7Udjr5dpXs";
+
+      var url =
+        "https://docs.google.com/spreadsheets/d/" +
+        id +
+        "/gviz/tq?tqx=out:json&tq&gid=" +
+        gid +
+        "&sheet=" +
+        sname +
+        "?callback=googleDocCallback";
+      let doctors = [];
+      const fields = [
+        "Speciality",
+        "Area",
+        "FullName",
+        "FirstName",
+        "MiddleName",
+        "LastName",
+        "ResidenceAddress",
+        "VillageName",
+        "DOB",
+        "Graduation",
+        "Speciality1",
+        "Speciality2",
+        "Speciality3",
+        "FieldOfInterest",
+        "ClinicName",
+        "Website",
+        "ClinicAddress",
+        "ClinicPhone1",
+        "ClinicPhone2",
+        "WorkEmail",
+        "PersonalEmail",
+        "Phone",
+        "Empty",
+      ];
+
+      const areas = new Set();
+      const specialization = new Set();
+
+      const areaSelect = document.getElementById("area");
+      const specialSelect = document.getElementById("special");
+      const resultsDiv = document.getElementById("results");
+
+      const submitButton = document.getElementById("submit");
+      submitButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        const area = areaSelect.value;
+        const special = specialSelect.value;
+        resultsDiv.textContent = "";
+
+        if (area && special) {
+          const results = doctors.filter((doc) => {
+            return (
+              doc?.Area?.toLowerCase() === area?.toLowerCase() &&
+              doc?.Speciality?.toLowerCase() === special?.toLowerCase()
+            );
+          });
+
+          if (results.length === 0) {
+            resultsDiv.innerText += "No results found";
+          }
+
+          results.forEach((res) => {
+            const resObj = document.createElement("div");
+            Object.keys(res).forEach((r) => {
+              const pObj = document.createElement("p");
+              if (res[r]) {
+                pObj.innerText += r + ": ";
+                pObj.innerText += res[r];
+                resObj.appendChild(pObj);
+              }
+            });
+            resultsDiv.appendChild(resObj);
+            resultsDiv.appendChild(document.createElement("hr"));
+          });
+        }
+      });
+
+      fetch(url)
+        .then((response) => response.text())
+        .then((data) => myItems(data.substring(47).slice(0, -2)))
+        .then(() => {
+          doctors.forEach((doc) => {
+            areas.add(doc.Area);
+            specialization.add(doc.Speciality);
+          });
+        })
+        .then(() => {
+          areas.forEach((ar) => {
+            let optionObj = document.createElement("option");
+            optionObj.innerText = ar;
+            optionObj.setAttribute("value", ar);
+            areaSelect.appendChild(optionObj);
+          });
+        })
+        .then(() => {
+          specialization.forEach((sp) => {
+            let optionObj = document.createElement("option");
+            optionObj.innerText = sp;
+            optionObj.setAttribute("value", sp);
+            specialSelect.appendChild(optionObj);
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+
+      function myItems(jsonString) {
+        var json = JSON.parse(jsonString);
+
+        json.table.rows.forEach((line, i) => {
+          doctors.push({});
+          line["c"].forEach((field, j) => {
+            const value = field?.v;
+            doctors[i][fields[j]] = value;
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
